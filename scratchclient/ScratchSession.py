@@ -46,7 +46,8 @@ class ScratchSession:
         request = requests.get("https://scratch.mit.edu/csrf_token/", headers=headers)
         self.csrf_token = re.search(
             "scratchcsrftoken=(.*?);", request.headers["Set-Cookie"]
-        ).group(1)
+        )[1]
+
         self.user = self.get_user(self.username)
 
     # Internal functions to convert raw data to objects
@@ -68,19 +69,17 @@ class ScratchSession:
     def get_user(self, user):
         username = user.username if isinstance(user, IncompleteUser) else user
         return self._to_user(
-            requests.get("https://api.scratch.mit.edu/users/" + username + "/").json(),
+            requests.get(f"https://api.scratch.mit.edu/users/{username}/").json()
         )
 
     def get_project(self, id):
         return self._to_project(
-            requests.get(
-                "https://api.scratch.mit.edu/projects/" + str(id) + "/"
-            ).json(),
+            requests.get(f"https://api.scratch.mit.edu/projects/{str(id)}/").json()
         )
 
     def get_studio(self, id):
         return self._to_studio(
-            requests.get("https://api.scratch.mit.edu/studios/" + str(id) + "/").json(),
+            requests.get(f"https://api.scratch.mit.edu/studios/{str(id)}/").json()
         )
 
     def get_news(self):
@@ -93,48 +92,34 @@ class ScratchSession:
             "x-csrftoken": self.csrf_token,
             "X-Token": self.token,
             "x-requested-with": "XMLHttpRequest",
-            "Cookie": "scratchcsrftoken="
-            + self.csrf_token
-            + ";scratchlanguage=en;scratchsessionsid="
-            + self.session_id
-            + ";",
+            "Cookie": f"scratchcsrftoken={self.csrf_token};scratchlanguage=en;scratchsessionsid={self.session_id};",
             "referer": "https://scratch.mit.edu",
         }
-        if all:
-            messages = []
-            offset = 0
-            while True:
-                res = requests.get(
-                    "https://api.scratch.mit.edu/users/"
-                    + self.username
-                    + "/messages/"
-                    + "?limit=40&offset="
-                    + str(offset)
-                    + "&filter="+ str(filter),
-                    headers=headers,
-                ).json()
-                messages += res
-                if len(res) != 40:
-                    break
-                offset += 40
-            return list(map(self._to_message, messages))
-        else:
+
+        if not all:
             return list(
                 map(
                     self._to_message,
                     requests.get(
-                        "https://api.scratch.mit.edu/users/"
-                        + self.username
-                        + "/messages/"
-                        + "?limit="
-                        + str(limit)
-                        + "&offset="
-                        + str(offset)
-                        + "&filter="+ str(filter),
+                        f"https://api.scratch.mit.edu/users/{self.username}/messages/?limit={str(limit)}&offset={str(offset)}&filter={str(filter)}",
                         headers=headers,
                     ).json(),
                 )
             )
+
+        messages = []
+        offset = 0
+        while True:
+            res = requests.get(
+                f"https://api.scratch.mit.edu/users/{self.username}/messages/?limit=40&offset={str(offset)}&filter={str(filter)}",
+                headers=headers,
+            ).json()
+
+            messages += res
+            if len(res) != 40:
+                break
+            offset += 40
+        return list(map(self._to_message, messages))
 
     def create_cloud_connection(self, project_id):
         return CloudConnection(project_id, self)

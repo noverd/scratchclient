@@ -24,191 +24,144 @@ class User:
             + ";scratchlanguage=en;scratchsessionsid="
             + self._client.session_id
             + ";",
-            "referer": "https://scratch.mit.edu/users/" + self.username + "/",
+            "referer": f"https://scratch.mit.edu/users/{self.username}/",
         }
 
     def get_projects(self, all=False, limit=20, offset=0):
-        if all:
-            projects = []
-            offset = 0
-            while True:
-                res = requests.get(
-                    "https://api.scratch.mit.edu/users/"
-                    + self.username
-                    + "/projects/"
-                    + "?limit=40&offset="
-                    + str(offset)
-                ).json()
-                projects += res
-                if len(res) != 40:
-                    break
-                offset += 40
-            projects.update({
-              "author": self.username
-            })
-            return list(map(self._client._to_project, projects))
-        else:
+        if not all:
             return list(
                 map(
                     self._client._to_project,
                     dict_merge(
-                      requests.get(
-                        "https://api.scratch.mit.edu/users/"
-                        + self.username
-                        + "/projects/"
-                        + "?limit="
-                        + str(limit)
-                        + "&offset="
-                        + str(offset)
-                      ).json(),
-                    {
-                      "author": self.username
-                    }),
+                        requests.get(
+                            f"https://api.scratch.mit.edu/users/{self.username}/projects/?limit={str(limit)}&offset={str(offset)}"
+                        ).json(),
+                        {"author": self.username},
+                    ),
                 )
             )
 
+        offset = 0
+        projects = []
+        while True:
+            res = requests.get(
+                f"https://api.scratch.mit.edu/users/{self.username}/projects/?limit=40&offset={str(offset)}"
+            ).json()
+
+            projects += res
+            if len(res) != 40:
+                break
+            offset += 40
+        projects.update({
+          "author": self.username
+        })
+        return list(map(self._client._to_project, projects))
+
     def get_curating(self, all=False, limit=20, offset=0):
-        if all:
-            studios = []
-            offset = 0
-            while True:
-                res = requests.get(
-                    "https://api.scratch.mit.edu/users/"
-                    + self.username
-                    + "/studios/curate"
-                    + "?limit=40&offset="
-                    + str(offset)
-                ).json()
-                studios += res
-                if len(res) != 40:
-                    break
-                offset += 40
-            return list(map(self._client._to_studio, studios))
-        else:
+        if not all:
             return list(
                 map(
                     self._client._to_studio,
                     requests.get(
-                        "https://api.scratch.mit.edu/users/"
-                        + self.username
-                        + "/studios/curate/"
-                        + "?limit="
-                        + str(limit)
-                        + "&offset="
-                        + str(offset)
+                        f"https://api.scratch.mit.edu/users/{self.username}/studios/curate/?limit={str(limit)}&offset={str(offset)}"
                     ).json(),
                 )
             )
 
+        offset = 0
+        studios = []
+        while True:
+            res = requests.get(
+                f"https://api.scratch.mit.edu/users/{self.username}/studios/curate?limit=40&offset={str(offset)}"
+            ).json()
+
+            studios += res
+            if len(res) != 40:
+                break
+            offset += 40
+        return list(map(self._client._to_studio, studios))
+
     def get_favorites(self, all=False, limit=20, offset=0):
-        if all:
-            projects = []
-            offset = 0
-            while True:
-                res = requests.get(
-                    "https://api.scratch.mit.edu/users/"
-                    + self.username
-                    + "/favorites/"
-                    + "?limit=40&offset="
-                    + str(offset)
-                ).json()
-                projects += res
-                if len(res) != 40:
-                    break
-                offset += 40
-            projects.update({
-              "author": self.username
-            })
-            return list(map(self._client._to_project, projects))
-        else:
+        if not all:
             return list(
                 map(
                     self._client._to_project,
                     dict_merge(
-                      requests.get(
-                        "https://api.scratch.mit.edu/users/"
-                        + self.username
-                        + "/favorites/"
-                        + "?limit="
-                        + str(limit)
-                        + "&offset="
-                        + str(offset)
-                      ).json(),
-                    {
-                      "author": self.username
-                    })
+                        requests.get(
+                            f"https://api.scratch.mit.edu/users/{self.username}/favorites/?limit={str(limit)}&offset={str(offset)}"
+                        ).json(),
+                        {"author": self.username},
+                    ),
                 )
             )
+
+        offset = 0
+        projects = []
+        while True:
+            res = requests.get(
+                f"https://api.scratch.mit.edu/users/{self.username}/favorites/?limit=40&offset={str(offset)}"
+            ).json()
+
+            projects += res
+            if len(res) != 40:
+                break
+            offset += 40
+        projects.update({
+          "author": self.username
+        })
+        return list(map(self._client._to_project, projects))
 
     def get_followers(self, all=False, limit=20, offset=0):
-        if all:
-            users = []
-            offset = 0
-            while True:
-                res = requests.get(
-                    "https://api.scratch.mit.edu/users/"
-                    + self.username
-                    + "/followers/"
-                    + "?limit=40&offset="
-                    + str(offset)
-                ).json()
-                users += res
-                if len(res) != 40:
-                    break
-                offset += 40
-            return list(map(self._client._to_user, users))
-        else:
+        if not all:
             return list(
                 map(
                     self._client._to_user,
                     requests.get(
-                        "https://api.scratch.mit.edu/users/"
-                        + self.username
-                        + "/followers/"
-                        + "?limit="
-                        + str(limit)
-                        + "&offset="
-                        + str(offset)
+                        f"https://api.scratch.mit.edu/users/{self.username}/followers/?limit={str(limit)}&offset={str(offset)}"
                     ).json(),
                 )
             )
 
+        offset = 0
+        users = []
+        while True:
+            res = requests.get(
+                f"https://api.scratch.mit.edu/users/{self.username}/followers/?limit=40&offset={str(offset)}"
+            ).json()
+
+            users += res
+            if len(res) != 40:
+                break
+            offset += 40
+        return list(map(self._client._to_user, users))
+
     def get_following(self, all=False, limit=20, offset=0):
-        if all:
-            users = []
-            offset = 0
-            while True:
-                res = requests.get(
-                    "https://api.scratch.mit.edu/users/"
-                    + self.username
-                    + "/following/"
-                    + "?limit=40&offset="
-                    + str(offset)
-                ).json()
-                users += res
-                if len(res) != 40:
-                    break
-                offset += 40
-            return list(map(self._client._to_user, users))
-        else:
+        if not all:
             return list(
                 map(
                     self._client._to_user,
                     requests.get(
-                        "https://api.scratch.mit.edu/users/"
-                        + self.username
-                        + "/following/"
-                        + "?limit="
-                        + str(limit)
-                        + "&offset="
-                        + str(offset)
+                        f"https://api.scratch.mit.edu/users/{self.username}/following/?limit={str(limit)}&offset={str(offset)}"
                     ).json(),
                 )
             )
+
+        offset = 0
+        users = []
+        while True:
+            res = requests.get(
+                f"https://api.scratch.mit.edu/users/{self.username}/following/?limit=40&offset={str(offset)}"
+            ).json()
+
+            users += res
+            if len(res) != 40:
+                break
+            offset += 40
+        return list(map(self._client._to_user, users))
 
     def get_message_count(self):
         return requests.get(
-            "https://api.scratch.mit.edu/users/" + self.username + "/messages/count/"
+            f"https://api.scratch.mit.edu/users/{self.username}/messages/count/"
         ).json()["count"]
 
     def post_comment(self, content, parent_id="", commentee_id=""):
@@ -218,7 +171,7 @@ class User:
             "parent_id": parent_id,
         }
         requests.post(
-            "https://scratch.mit.edu/site-api/comments/user/" + self.username + "/add/",
+            f"https://scratch.mit.edu/site-api/comments/user/{self.username}/add/",
             headers=self._headers,
             data=json.dumps(data),
         )
@@ -228,7 +181,7 @@ class User:
             raise UnauthorizedException("You are not allowed to do that")
         data = {"selected_field": field}
         requests.post(
-            "https://scratch.mit.edu/site-api/users/all/" + self.username + "/report/",
+            f"https://scratch.mit.edu/site-api/users/all/{self.username}/report/",
             headers=self._headers,
             data=json.dumps(data),
         )

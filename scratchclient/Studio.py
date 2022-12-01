@@ -30,32 +30,24 @@ class Studio:
             + ";scratchlanguage=en;scratchsessionsid="
             + self._client.session_id
             + ";",
-            "referer": "https://scratch.mit.edu/studios/" + str(self.id) + "/",
+            "referer": f"https://scratch.mit.edu/studios/{str(self.id)}/",
         }
 
     def add_project(self, project):
-        project_id = project.id if isinstance(project, Project) else project
         headers = self._headers
-        headers["referer"] = "https://scratch.mit.edu/projects/" + str(project_id) + "/"
+        project_id = project.id if isinstance(project, Project) else project
+        headers["referer"] = f"https://scratch.mit.edu/projects/{str(project_id)}/"
         requests.post(
-            "https://api.scratch.mit.edu/studios/"
-            + str(self.id)
-            + "/project/"
-            + project_id
-            + "/",
+            f"https://api.scratch.mit.edu/studios/{str(self.id)}/project/{project_id}/",
             headers=headers,
         )
 
     def remove_project(self, project):
-        project_id = project.id if isinstance(project, Project) else project
         headers = self._headers
-        headers["referer"] = "https://scratch.mit.edu/projects/" + str(project_id) + "/"
+        project_id = project.id if isinstance(project, Project) else project
+        headers["referer"] = f"https://scratch.mit.edu/projects/{str(project_id)}/"
         requests.post(
-            "https://api.scratch.mit.edu/studios/"
-            + str(self.id)
-            + "/project/"
-            + project_id
-            + "/",
+            f"https://api.scratch.mit.edu/studios/{str(self.id)}/project/{project_id}/",
             headers=headers,
         )
 
@@ -95,9 +87,10 @@ class Studio:
 
     def toggle_commenting(self):
         headers = self._headers
-        headers["referer"] = (
-            "https://scratch.mit.edu/studios/" + str(self.id) + "/comments/"
-        )
+        headers[
+            "referer"
+        ] = f"https://scratch.mit.edu/studios/{str(self.id)}/comments/"
+
         requests.post(
             "https://scratch.mit.edu/site-api/comments/gallery/"
             + str(self.id)
@@ -107,9 +100,10 @@ class Studio:
 
     def post_comment(self, content, parent_id="", commentee_id=""):
         headers = self._headers
-        headers["referer"] = (
-            "https://scratch.mit.edu/studios/" + str(self.id) + "/comments/"
-        )
+        headers[
+            "referer"
+        ] = f"https://scratch.mit.edu/studios/{str(self.id)}/comments/"
+
         data = {
             "commentee_id": commentee_id,
             "content": content,
@@ -125,47 +119,48 @@ class Studio:
 
     def delete_comment(self, comment_id):
         headers = self._headers
-        headers["referer"] = (
-            "https://scratch.mit.edu/studios/" + str(self.id) + "/comments/"
-        )
+        headers[
+            "referer"
+        ] = f"https://scratch.mit.edu/studios/{str(self.id)}/comments/"
+
         data = {"id": comment_id}
         requests.post(
-            "https://scratch.mit.edu/site-api/comments/user/" + self.username + "/del/",
+            f"https://scratch.mit.edu/site-api/comments/user/{self.username}/del/",
             headers=headers,
             data=json.dumps(data),
         )
 
     def report_comment(self, comment_id):
         headers = self._headers
-        headers["referer"] = (
-            "https://scratch.mit.edu/studios/" + str(self.id) + "/comments/"
-        )
+        headers[
+            "referer"
+        ] = f"https://scratch.mit.edu/studios/{str(self.id)}/comments/"
+
         data = {"id": comment_id}
         requests.post(
-            "https://scratch.mit.edu/site-api/comments/user/" + self.username + "/rep/",
+            f"https://scratch.mit.edu/site-api/comments/user/{self.username}/rep/",
             headers=headers,
             data=json.dumps(data),
         )
 
     def invite_curator(self, user):
-        username = user.username if isinstance(user, User) == str else user
         headers = self._headers
-        headers["referer"] = (
-            "https://scratch.mit.edu/studios/" + str(self.id) + "/curators/"
-        )
+        username = user.username if isinstance(user, User) == str else user
+        headers[
+            "referer"
+        ] = f"https://scratch.mit.edu/studios/{str(self.id)}/curators/"
+
         requests.put(
-            "https://scratch.mit.edu/site-api/users/curators-in/"
-            + str(self.id)
-            + "/invite_curator/?usernames="
-            + username,
+            f"https://scratch.mit.edu/site-api/users/curators-in/{str(self.id)}/invite_curator/?usernames={username}",
             headers=headers,
         )
 
     def accept_curator(self):
         headers = self._headers
-        headers["referer"] = (
-            "https://scratch.mit.edu/studios/" + str(self.id) + "/curators/"
-        )
+        headers[
+            "referer"
+        ] = f"https://scratch.mit.edu/studios/{str(self.id)}/curators/"
+
         requests.put(
             "https://scratch.mit.edu/site-api/users/curators-in/"
             + str(self.id)
@@ -175,33 +170,33 @@ class Studio:
         )
 
     def promote_curator(self, user):
-        username = user.username if isinstance(user, User) == str else user
         headers = self._headers
-        headers["referer"] = (
-            "https://scratch.mit.edu/studios/" + str(self.id) + "/curators/"
-        )
+        username = user.username if isinstance(user, User) == str else user
+        headers[
+            "referer"
+        ] = f"https://scratch.mit.edu/studios/{str(self.id)}/curators/"
+
         requests.put(
-            "https://scratch.mit.edu/site-api/users/curators-in/"
-            + str(self.id)
-            + "/promote/?usernames="
-            + username,
+            f"https://scratch.mit.edu/site-api/users/curators-in/{str(self.id)}/promote/?usernames={username}",
             headers=headers,
         )
 
     def set_description(self, content):
         data = {"description": content}
         requests.put(
-            "https://scratch.mit.edu/site-api/galleries/all/" + str(self.id) + "/",
+            f"https://scratch.mit.edu/site-api/galleries/all/{str(self.id)}/",
             headers=self._headers,
             data=json.dumps(data),
         )
+
         self.description = content
 
     def set_title(self, content):
         data = {"title": content}
         requests.put(
-            "https://scratch.mit.edu/site-api/galleries/all/" + str(self.id) + "/",
+            f"https://scratch.mit.edu/site-api/galleries/all/{str(self.id)}/",
             headers=self._headers,
             data=json.dumps(data),
         )
+
         self.title = content

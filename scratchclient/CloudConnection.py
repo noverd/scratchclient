@@ -28,76 +28,71 @@ class CloudConnection(EventEmitter):
         self._ws.send(json.dumps(packet) + "\n")
 
     def connect(self, project_id):
-        if project_id:
-            self.project_id = project_id
-        self._ws = websocket.WebSocket()
-        self._cloudvariables = []
-        self._timer = time.time()
-        self._ws.connect(
-            "wss://clouddata.scratch.mit.edu",
-            cookie="scratchsessionsid=" + self._client.session_id + ";",
-            origin="https://scratch.mit.edu",
-            enable_multithread=True,
-        )  # connect the websocket
-        self._send_packet(
-            {
-                "method": "handshake",
-                "user": self._client.username,
-                "project_id": str(self.project_id),
-            }
-        )
-        self.emit("handshake")
-        response = self._ws.recv().split("\n")
-        for variable in response:
-            try:
-                variable = json.loads(str(variable))
-            except:
-                pass
-            else:
-                self._cloudvariables.append(
-                    CloudVariable(variable["name"], variable["value"])
-                )
-        self._start_cloud_var_loop()
+      if project_id:
+          self.project_id = project_id
+      self._ws = websocket.WebSocket()
+      self._cloudvariables = []
+      self._timer = time.time()
+      self._ws.connect(
+          "wss://clouddata.scratch.mit.edu",
+          cookie=f"scratchsessionsid={self._client.session_id};",
+          origin="https://scratch.mit.edu",
+          enable_multithread=True,
+      )
+      self._send_packet(
+          {
+              "method": "handshake",
+              "user": self._client.username,
+              "project_id": str(self.project_id),
+          }
+      )
+      self.emit("handshake")
+      response = self._ws.recv().split("\n")
+      for variable in response:
+          try:
+              variable = json.loads(str(variable))
+          except:
+              pass
+          else:
+              self._cloudvariables.append(
+                  CloudVariable(variable["name"], variable["value"])
+              )
+      self._start_cloud_var_loop()
 
     def set_cloud_variable(self, variable, value):
-        if time.time() - self._timer > 0.1:
-            if not str(value).isdigit():
-                raise ValueError(
-                    "Cloud variables can only be set to a combination of numbers"
-                )
-            try:
-                packet = {
-                    "method": "set",
-                    "name": (
-                        "☁ " + variable if not variable.startswith("☁ ") else variable
-                    ),
-                    "value": str(value),
-                    "user": self._client.username,
-                    "project_id": str(self.project_id),
-                }
-                self._send_packet(packet)
-                self.emit("outgoing", packet)
-                self._timer = time.time()
-                for cloud in self._cloudvariables:
-                    if (
-                        cloud.name == "☁ " + variable
-                        if not variable.startswith("☁ ")
-                        else variable
-                    ):
-                        cloud.value = value
-                        self.emit("set", cloud)
-                        break
-            except (
-                BrokenPipeError,
-                websocket._exceptions.WebSocketConnectionClosedException,
-            ):
-                self.connect()
-                time.sleep(0.1)
-                self.set_cloud_variable(variable, value)
-                return
-        else:
-            time.sleep(time.time() - self._timer)
+      if time.time() - self._timer > 0.1:
+        if not str(value).isdigit():
+            raise ValueError(
+                "Cloud variables can only be set to a combination of numbers"
+            )
+        try:
+          packet = {
+              "method": "set",
+              "name": variable if variable.startswith("☁ ") else f"☁ {variable}",
+              "value": str(value),
+              "user": self._client.username,
+              "project_id": str(self.project_id),
+          }
+          self._send_packet(packet)
+          self.emit("outgoing", packet)
+          self._timer = time.time()
+          for cloud in self._cloudvariables:
+            if (variable
+                if variable.startswith("☁ ") else cloud.name == f"☁ {variable}"):
+              cloud.value = value
+              self.emit("set", cloud)
+              break
+        except (
+            BrokenPipeError,
+            websocket._exceptions.WebSocketConnectionClosedException,
+        ):
+            self.connect()
+            time.sleep(0.1)
             self.set_cloud_variable(variable, value)
+            return
+      else:
+        time.sleep(time.time() - self._timer)
+        self.set_cloud_variable(variable, value)
 
     def _cloud_var_loop(self):
         while True:
@@ -118,16 +113,11 @@ class CloudConnection(EventEmitter):
         thread.start()
 
     def get_cloud_variable(self, name):
-        try:
-            var = next(
-                x
-                for x in self._cloudvariables
-                if x.name == ("☁ " + name if not name.startswith("☁ ") else name)
-            )
-            return var.value
-        except StopIteration:
-            raise ValueError(
-                "Variable '"
-                + ("☁ " + name if not name.startswith("☁ ") else name)
-                + "' is not in this project"
-            )
+      try:
+        var = next(x for x in self._cloudvariables
+                   if x.name == (name if name.startswith("☁ ") else f"☁ {name}"))
+        return var.value
+      except StopIteration:
+        raise ValueError(
+            (("Variable '" + (name if name.startswith("☁ ") else f"☁ {name}")) +
+             "' is not in this project"))
